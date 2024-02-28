@@ -438,30 +438,48 @@
          mat4.perspective(P, Math.PI / 2, canvas.width / canvas.height, .01, 10);
       }
       else {
-         mat4.fromScaling(M1_model, sigmaV);
+         console.log("Model Matrix Before:");
+         console.log(M1_model);
 
-         mat4.fromXRotation(M1_model, thetaV[0]);
-         mat4.fromYRotation(M1_model, thetaV[1]);
-         mat4.fromZRotation(M1_model, thetaV[2]);
+         mat4.scale(M1_model, M1_model, sigmaV);
 
-         mat4.fromTranslation(M1_model, deltaV);
+         mat4.rotateX(M1_model, M1_model, thetaV[0]);
+         mat4.rotateY(M1_model, M1_model, thetaV[1]);
+         mat4.rotateZ(M1_model, M1_model, thetaV[2]);
+
+         mat4.translate(M1_model, M1_model, deltaV);
+
+         console.log("Model Matrix After:");
+         console.log(M1_model);
 
          mat4.lookAt(M_view, [-5, 5, 6], [0, 0, 0], [0, 1, 0]);
          mat4.perspective(P, Math.PI / 2, canvas.width / canvas.height, .01, 15);
 
          // Log all the points (1-10 = 0,1,2,3,30,31,32,33,28,29):
          // This is before the transformation. Log after the transformation.
-         console.log(
-            [object1.vertices[0],
-            object1.vertices[1],
-            object1.vertices[2],
-            object1.vertices[3],
-            object1.vertices[30],
-            object1.vertices[31],
-            object1.vertices[32],
-            object1.vertices[33],
-            object1.vertices[28],
-            object1.vertices[29]]);
+         let pointIndices = [0, 1, 2, 3, 30, 31, 32, 33, 28, 29];
+
+         let points = [object1.vertices[0],
+         object1.vertices[1],
+         object1.vertices[2],
+         object1.vertices[3],
+         object1.vertices[30],
+         object1.vertices[31],
+         object1.vertices[32],
+         object1.vertices[33],
+         object1.vertices[28],
+         object1.vertices[29]];
+
+         let newPoints = [];
+         for (let i = 0; i < points.length; i++) {
+            newPoints[i] = vec4.create();
+            mat4.multiply(newPoints[i], M1_model, object1.vertices[pointIndices[i]]);
+         }
+
+         console.log("Points Before:");
+         console.log(points);
+         console.log("Points After:");
+         console.log(newPoints);
       }
 
       //mat4.translate(M1_model, M1_model, [1.2, .0, .4]);
