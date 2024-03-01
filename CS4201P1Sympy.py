@@ -14,7 +14,7 @@ def roundDP(self, precision):
     return self.applyfunc(lambda e: round(e, precision))
 
 init_printing()
-x, y, z, delta_x, delta_y, delta_z, sigma_x, sigma_y, sigma_z = symbols('x y z delta_x delta_y delta_z sigma_x sigma_y sigma_z')
+x, y, z, delta_x, delta_y, delta_z, sigma_x, sigma_y, sigma_z, xc, yc, dc = symbols('x y z delta_x delta_y delta_z sigma_x sigma_y sigma_z x y d_c')
 xVal = 0.1
 yVal = 0.2
 zVal = 0.1
@@ -24,6 +24,9 @@ delta_zVal = 1
 sigma_xVal = 0.7
 sigma_yVal = 0.7
 sigma_zVal = 0.7
+xcVal = 0.15
+ycVal = 0.07
+dcVal = 12
 
 precision = 2
 
@@ -58,3 +61,23 @@ v1Dotv2 = v1.dot(v2)
 v1Dotv2Eval = v1Dotv2.subs([(x, xVal), (y, yVal), (z, zVal), (delta_x, delta_xVal), (delta_y, delta_yVal), (delta_z, delta_zVal), (sigma_x, sigma_xVal), (sigma_y, sigma_yVal), (sigma_z, sigma_zVal)]).round(precision)
 v2Dotv3 = v2.dot(v3)
 v2Dotv3Eval = v2Dotv3.subs([(x, xVal), (y, yVal), (z, zVal), (delta_x, delta_xVal), (delta_y, delta_yVal), (delta_z, delta_zVal), (sigma_x, sigma_xVal), (sigma_y, sigma_yVal), (sigma_z, sigma_zVal)]).round(precision)
+
+Rxc = Matrix([[1,0,0,0], [0,cos(xc),-sin(xc),0], [0,sin(xc),cos(xc),0], [0,0,0,1]])
+Ryc = Matrix([[cos(yc),0,sin(yc),0], [0,1,0,0], [-sin(yc),0,cos(yc),0], [0,0,0,1]])
+Ryxc = Ryc * Rxc
+RyxcEval = roundDP(Ryxc.subs([(xc, xcVal), (yc, ycVal)]), precision)
+Tc = Matrix([[1,0,0,0], [0,1,0,0], [0,0,1,dc], [0,0,0,1]])
+
+Mcamera = Ryxc * Tc
+McameraEval = roundDP(Mcamera.subs([(xc, xcVal), (yc, ycVal), (dc, dcVal)]), precision)
+
+Mview = Mcamera.inv()
+MviewEval = roundDP(Mview.subs([(xc, xcVal), (yc, ycVal), (dc, dcVal)]), precision)
+
+Mvm = Mview * M
+MvmEval = roundDP(Mvm.subs([(x, xVal), (y, yVal), (z, zVal), (delta_x, delta_xVal), (delta_y, delta_yVal), (delta_z, delta_zVal), (sigma_x, sigma_xVal), (sigma_y, sigma_yVal), (sigma_z, sigma_zVal), (xc, xcVal), (yc, ycVal), (dc, dcVal)]),precision)
+MvmEvalAlt = roundDP(MviewEval * MEval, precision)
+# Double check the symbols work properly!
+
+
+# Remember print_latex()!
