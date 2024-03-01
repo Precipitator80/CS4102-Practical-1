@@ -13,6 +13,33 @@ def roundDP(self, precision):
     """
     return self.applyfunc(lambda e: round(e, precision))
 
+def compute_centroid(points):
+    """
+    Compute the centroid of a set of 3D points.
+
+    Args:
+        points (Matrix): A matrix where each row represents a point in 3D space.
+
+    Returns:
+        Matrix: A column matrix representing the centroid coordinates (x, y, z).
+    """
+    # Calculate the total sum of x, y, and z coordinates
+    sum_x = sum(points[0, :])
+    sum_y = sum(points[1, :])
+    sum_z = sum(points[2, :])
+
+    # Compute the number of points
+    num_points = len(Points[0,:])
+
+    # Compute the centroid
+    centroid_x = Add(sum_x, 0) / num_points
+    centroid_y = Add(sum_y, 0) / num_points
+    centroid_z = Add(sum_z, 0) / num_points
+
+    centroid = Matrix([centroid_x, centroid_y, centroid_z])
+
+    return centroid
+
 init_printing()
 x, y, z, delta_x, delta_y, delta_z, sigma_x, sigma_y, sigma_z, xc, yc, dc = symbols('x y z delta_x delta_y delta_z sigma_x sigma_y sigma_z x y d_c')
 xVal = 0.1
@@ -79,5 +106,27 @@ MvmEval = roundDP(Mvm.subs([(x, xVal), (y, yVal), (z, zVal), (delta_x, delta_xVa
 MvmEvalAlt = roundDP(MviewEval * MEval, precision)
 # Double check the symbols work properly!
 
+TransformedPointsMVM = (Mvm * Points)
+TransformedPointsMVMEval = roundDP(TransformedPointsMVM.subs([(x, xVal), (y, yVal), (z, zVal), (delta_x, delta_xVal), (delta_y, delta_yVal), (delta_z, delta_zVal), (sigma_x, sigma_xVal), (sigma_y, sigma_yVal), (sigma_z, sigma_zVal), (xc, xcVal), (yc, ycVal), (dc, dcVal)]),precision)
+#TransformedPointsMVMEvalAlt = roundDP((Mview * TransformedPoints).subs([(x, xVal), (y, yVal), (z, zVal), (delta_x, delta_xVal), (delta_y, delta_yVal), (delta_z, delta_zVal), (sigma_x, sigma_xVal), (sigma_y, sigma_yVal), (sigma_z, sigma_zVal), (xc, xcVal), (yc, ycVal), (dc, dcVal)]),precision)
+#TransformedPointsMVMEvalAlt2 = roundDP(MviewEval * TransformedPointsEval,precision)
+
+OriginalCentroid = compute_centroid(Points)
+TransformedMVMCentroid = compute_centroid(TransformedPointsMVMEval)
+CentroidDifference = TransformedMVMCentroid - OriginalCentroid
+
+ReturnMVMToOriginTransform = Matrix([[1,0,0,-CentroidDifference[0]], [0,1,0,-CentroidDifference[1]], [0,0,1,-CentroidDifference[2]], [0,0,0,1]])
+ReturnMVMToIdentityRotation = (Ryxc * Rzyx).T
+#DoubleXAtOrigin =  Matrix([[2,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]])
+#ReturnIdentityToMVMRotation = ReturnMVMToIdentityRotation.T
+#ReturnOriginToMVMTransform = ReturnMVMToOriginTransform.inv()
+
+#ScaledTransformedPointsMVM = ReturnOriginToMVMTransform * ReturnIdentityToMVMRotation * DoubleXAtOrigin * ReturnMVMToIdentityRotation * ReturnMVMToOriginTransform * TransformedPointsMVM
+#ScaledTransformedPointsMVMEval = roundDP(ScaledTransformedPointsMVM.subs([(x, xVal), (y, yVal), (z, zVal), (delta_x, delta_xVal), (delta_y, delta_yVal), (delta_z, delta_zVal), (sigma_x, sigma_xVal), (sigma_y, sigma_yVal), (sigma_z, sigma_zVal), (xc, xcVal), (yc, ycVal), (dc, dcVal)]),precision)
+
+#compute_centroid(ReturnMVMToOriginTransform * TransformedPointsEval)
+
+TransformedPointsMVMAtOrigin = roundDP((ReturnMVMToIdentityRotation * ReturnMVMToOriginTransform * TransformedPointsMVM).subs([(x, xVal), (y, yVal), (z, zVal), (delta_x, delta_xVal), (delta_y, delta_yVal), (delta_z, delta_zVal), (sigma_x, sigma_xVal), (sigma_y, sigma_yVal), (sigma_z, sigma_zVal), (xc, xcVal), (yc, ycVal), (dc, dcVal)]),precision)
+compute_centroid(TransformedPointsMVMAtOrigin)
 
 # Remember print_latex()!
