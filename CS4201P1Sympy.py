@@ -75,7 +75,7 @@ print_latex(TEval)
 print("--------------------------------------------------")
 
 # Question 1. a) Scaling Matrix
-S =  Matrix([[sigma_x,0,0,0], [0,sigma_y,0,0], [0,0,sigma_z,0], [0,0,0,1]])
+S = Matrix([[sigma_x,0,0,0], [0,sigma_y,0,0], [0,0,sigma_z,0], [0,0,0,1]])
 SEval = custom_evaluate(S)
 print("Q1. a) S:")
 print_latex(S)
@@ -89,7 +89,7 @@ Ry = Matrix([[cos(y),0,sin(y),0], [0,1,0,0], [-sin(y),0,cos(y),0], [0,0,0,1]])
 Rz = Matrix([[cos(z),-sin(z),0,0], [sin(z),cos(z),0,0], [0,0,1,0], [0,0,0,1]])
 Ryx = Ry * Rx
 Rzyx = Rz * Ryx
-RzyxEval = roundDP(Rzyx.subs([(x, xVal), (y, yVal), (z, zVal)]), precision)
+RzyxEval = custom_evaluate(Rzyx)
 
 print("Q1. a) Rx:")
 print_latex(Rx)
