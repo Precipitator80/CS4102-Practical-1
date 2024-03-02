@@ -110,10 +110,14 @@ ST = S * T
 Mmodel = Rzyx * ST
 MmodelEval = custom_evaluate(Mmodel)
 
+r11, r12, r13, r21, r22, r23, r31, r32, r33 = symbols('r_{11} r_{12} r_{13} r_{21} r_{22} r_{23} r_{31} r_{32} r_{33}')
+RzyxFake = Matrix([[r11,r12,r13,0], [r21,r22,r23,0], [r31,r32,r33,0], [0,0,0,1]])
+MmodelFake = RzyxFake * ST
+
 print("Q1. c) ST:")
 print_latex(ST)
 print("-----\nQ1. c) Mmodel:")
-print_latex(Mmodel)
+print_latex(MmodelFake)
 print("-----\nQ1. c) Mmodel (Evaluated):")
 print_latex(MmodelEval)
 print("--------------------------------------------------")
@@ -254,11 +258,14 @@ print("--------------------------------------------------")
 
 # Question 4.1 In-place Scaler
 MmodelviewInverse = Mmodel.inv() * Mcamera
+MmodelviewInverseEval = custom_evaluate(MmodelviewInverse)
 DoubleXAtOrigin =  Matrix([[2,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]])
 InPlaceScaler = Mmodelview * DoubleXAtOrigin * MmodelviewInverse
 InPlaceScalerEval = custom_evaluate(InPlaceScaler)
 
-print("Q4.1 In-place Scaler:")
+print("Q4.1 Model-View Matrix Inverse (Evaluated):")
+print_latex(MmodelviewInverseEval)
+print("-----\nQ4.1 In-place Scaler:")
 print_latex(InPlaceScalerEval)
 print("--------------------------------------------------")
 
@@ -270,7 +277,6 @@ print("Q4.2 Scaled Model-View Transformed Points (P'''):")
 print_latex(SMVPointsEval)
 print("--------------------------------------------------")
 print("Correct scaling verification:")
-print(f"P1: {Points[:,0]}. P4: {Points[:,3]}")
-print(f"P1P4Before: {round((Points[:,3] - Points[:,0]).norm(),precision)}. P1P4Model: {round((MPointsEval[:,3] - MPointsEval[:,0]).norm(),precision)}. P1P4ModelView: {round((MVPointsEval[:,3] - MVPointsEval[:,0]).norm(),precision)}. P1P4Scaled: {round((SMVPointsEval[:,3] - SMVPointsEval[:,0]).norm(),precision)}.")
-print(f"P1P2Before: {round((Points[:,1] - Points[:,0]).norm(),precision)}. P1P2Model: {round((MPointsEval[:,1] - MPointsEval[:,0]).norm(),precision)}. P1P2ModelView: {round((MVPointsEval[:,1] - MVPointsEval[:,0]).norm(),precision)}. P1P2Scaled: {round((SMVPointsEval[:,1] - SMVPointsEval[:,0]).norm(),precision)}.")
+print(f"P1P4Original: {round((Points[:,3] - Points[:,0]).norm(),precision)}. P1P4Model: {round((MPointsEval[:,3] - MPointsEval[:,0]).norm(),precision)}. P1P4ModelView: {round((MVPointsEval[:,3] - MVPointsEval[:,0]).norm(),precision)}. P1P4ScaledModelView: {round((SMVPointsEval[:,3] - SMVPointsEval[:,0]).norm(),precision)}.")
+print(f"P1P2Original: {round((Points[:,1] - Points[:,0]).norm(),precision)}. P1P2Model: {round((MPointsEval[:,1] - MPointsEval[:,0]).norm(),precision)}. P1P2ModelView: {round((MVPointsEval[:,1] - MVPointsEval[:,0]).norm(),precision)}. P1P2ScaledModelView: {round((SMVPointsEval[:,1] - SMVPointsEval[:,0]).norm(),precision)}.")
 print("--------------------------------------------------")
