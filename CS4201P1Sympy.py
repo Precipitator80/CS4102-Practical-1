@@ -104,6 +104,7 @@ MviewEval = roundDP(Mview.subs([(xc, xcVal), (yc, ycVal), (dc, dcVal)]), precisi
 Mvm = Mview * M
 MvmEval = roundDP(Mvm.subs([(x, xVal), (y, yVal), (z, zVal), (delta_x, delta_xVal), (delta_y, delta_yVal), (delta_z, delta_zVal), (sigma_x, sigma_xVal), (sigma_y, sigma_yVal), (sigma_z, sigma_zVal), (xc, xcVal), (yc, ycVal), (dc, dcVal)]),precision)
 MvmEvalAlt = roundDP(MviewEval * MEval, precision)
+MvmInvApprox = roundDP(MvmEval.inv(),precision)
 # Double check the symbols work properly!
 
 TransformedPointsMVM = (Mvm * Points)
@@ -115,18 +116,30 @@ OriginalCentroid = compute_centroid(Points)
 TransformedMVMCentroid = compute_centroid(TransformedPointsMVMEval)
 CentroidDifference = TransformedMVMCentroid - OriginalCentroid
 
-ReturnMVMToOriginTransform = Matrix([[1,0,0,-CentroidDifference[0]], [0,1,0,-CentroidDifference[1]], [0,0,1,-CentroidDifference[2]], [0,0,0,1]])
-ReturnMVMToIdentityRotation = (Ryxc * Rzyx).T
-#DoubleXAtOrigin =  Matrix([[2,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]])
+ReturnMVMToOriginTransform = M.inv() * Mcamera #Matrix([[1,0,0,-CentroidDifference[0]], [0,1,0,-CentroidDifference[1]], [0,0,1,-CentroidDifference[2]], [0,0,0,1]])
+#ReturnMVMToIdentityRotation = (Ryxc * Rzyx).T
+DoubleXAtOrigin =  Matrix([[2,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]])
 #ReturnIdentityToMVMRotation = ReturnMVMToIdentityRotation.T
-#ReturnOriginToMVMTransform = ReturnMVMToOriginTransform.inv()
+ReturnOriginToMVMTransform = Mvm
 
-#ScaledTransformedPointsMVM = ReturnOriginToMVMTransform * ReturnIdentityToMVMRotation * DoubleXAtOrigin * ReturnMVMToIdentityRotation * ReturnMVMToOriginTransform * TransformedPointsMVM
-#ScaledTransformedPointsMVMEval = roundDP(ScaledTransformedPointsMVM.subs([(x, xVal), (y, yVal), (z, zVal), (delta_x, delta_xVal), (delta_y, delta_yVal), (delta_z, delta_zVal), (sigma_x, sigma_xVal), (sigma_y, sigma_yVal), (sigma_z, sigma_zVal), (xc, xcVal), (yc, ycVal), (dc, dcVal)]),precision)
+ScaleAtOriginTransform = ReturnOriginToMVMTransform * DoubleXAtOrigin * ReturnMVMToOriginTransform
+ScaleAtOriginTransformEval = roundDP(ScaleAtOriginTransform.subs([(x, xVal), (y, yVal), (z, zVal), (delta_x, delta_xVal), (delta_y, delta_yVal), (delta_z, delta_zVal), (sigma_x, sigma_xVal), (sigma_y, sigma_yVal), (sigma_z, sigma_zVal), (xc, xcVal), (yc, ycVal), (dc, dcVal)]),precision)
+
+ScaledTransformedPointsMVM =  ScaleAtOriginTransform * TransformedPointsMVM
+ScaledTransformedPointsMVMEval = roundDP(ScaledTransformedPointsMVM.subs([(x, xVal), (y, yVal), (z, zVal), (delta_x, delta_xVal), (delta_y, delta_yVal), (delta_z, delta_zVal), (sigma_x, sigma_xVal), (sigma_y, sigma_yVal), (sigma_z, sigma_zVal), (xc, xcVal), (yc, ycVal), (dc, dcVal)]),precision)
 
 #compute_centroid(ReturnMVMToOriginTransform * TransformedPointsEval)
 
-TransformedPointsMVMAtOrigin = roundDP((ReturnMVMToIdentityRotation * ReturnMVMToOriginTransform * TransformedPointsMVM).subs([(x, xVal), (y, yVal), (z, zVal), (delta_x, delta_xVal), (delta_y, delta_yVal), (delta_z, delta_zVal), (sigma_x, sigma_xVal), (sigma_y, sigma_yVal), (sigma_z, sigma_zVal), (xc, xcVal), (yc, ycVal), (dc, dcVal)]),precision)
-compute_centroid(TransformedPointsMVMAtOrigin)
+#TransformedPointsMVMAtOrigin = roundDP((ReturnMVMToIdentityRotation * ReturnMVMToOriginTransform * TransformedPointsMVM).subs([(x, xVal), (y, yVal), (z, zVal), (delta_x, delta_xVal), (delta_y, delta_yVal), (delta_z, delta_zVal), (sigma_x, sigma_xVal), (sigma_y, sigma_yVal), (sigma_z, sigma_zVal), (xc, xcVal), (yc, ycVal), (dc, dcVal)]),precision)
+
+#print(ScaledTransformedPointsMVMEval)
+
+print(f"P1: {Points[:,0]}. P4: {Points[:,3]}")
+
+print(f"P1P4Before: {round((Points[:,3] - Points[:,0]).norm(),precision)}. P1P4Model: {round((TransformedPointsEval[:,3] - TransformedPointsEval[:,0]).norm(),precision)}. P1P4ViewModel: {round((TransformedPointsMVMEval[:,3] - TransformedPointsMVMEval[:,0]).norm(),precision)}. P1P4Scaled: {round((ScaledTransformedPointsMVMEval[:,3] - ScaledTransformedPointsMVMEval[:,0]).norm(),precision)}.")
+print(f"P1P2Before: {round((Points[:,1] - Points[:,0]).norm(),precision)}. P1P2Model: {round((TransformedPointsEval[:,1] - TransformedPointsEval[:,0]).norm(),precision)}. P1P2ViewModel: {round((TransformedPointsMVMEval[:,1] - TransformedPointsMVMEval[:,0]).norm(),precision)}. P1P2Scaled: {round((ScaledTransformedPointsMVMEval[:,1] - ScaledTransformedPointsMVMEval[:,0]).norm(),precision)}.")
+
+#print_latex(ScaleAtOriginTransformEval)
+print_latex(ScaledTransformedPointsMVMEval)
 
 # Remember print_latex()!
