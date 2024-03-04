@@ -403,27 +403,7 @@
       let dC = 12;
 
 
-      let translationMatrix = mat4.create();
-      mat4.fromTranslation(translationMatrix, deltaV);
 
-      let scalingMatrix = mat4.create();
-      mat4.fromScaling(scalingMatrix, sigmaV);
-
-      let xRotationMatrix = mat4.create();
-      mat4.fromXRotation(xRotationMatrix, thetaV[0]);
-      let yRotationMatrix = mat4.create();
-      mat4.fromYRotation(yRotationMatrix, thetaV[1]);
-      let zRotationMatrix = mat4.create();
-      mat4.fromZRotation(zRotationMatrix, thetaV[2]);
-
-      console.log("Translation Matrix:");
-      console.log(translationMatrix);
-      console.log("Scaling Matrix:");
-      console.log(scalingMatrix);
-      console.log("Rotation Matrices (x,y,z):");
-      console.log(xRotationMatrix);
-      console.log(yRotationMatrix);
-      console.log(zRotationMatrix);
 
       let practicalTransform = true;
       let rotate = false;
@@ -438,22 +418,90 @@
          mat4.perspective(P, Math.PI / 2, canvas.width / canvas.height, .01, 10);
       }
       else {
-         console.log("Model Matrix Before:");
-         console.log(M1_model);
+         // Define each intermediate matrix of the model matrix.
+         let translationMatrix = mat4.create();
+         mat4.fromTranslation(translationMatrix, deltaV);
+         let scalingMatrix = mat4.create();
+         mat4.fromScaling(scalingMatrix, sigmaV);
+         let xRotationMatrix = mat4.create();
+         mat4.fromXRotation(xRotationMatrix, thetaV[0]);
+         let yRotationMatrix = mat4.create();
+         mat4.fromYRotation(yRotationMatrix, thetaV[1]);
+         let zRotationMatrix = mat4.create();
+         mat4.fromZRotation(zRotationMatrix, thetaV[2]);
 
+         // Calculate the model matrix.
+         mat4.translate(M1_model, M1_model, deltaV);
          mat4.scale(M1_model, M1_model, sigmaV);
-
          mat4.rotateX(M1_model, M1_model, thetaV[0]);
          mat4.rotateY(M1_model, M1_model, thetaV[1]);
          mat4.rotateZ(M1_model, M1_model, thetaV[2]);
 
-         mat4.translate(M1_model, M1_model, deltaV);
-
-         console.log("Model Matrix After:");
+         // Log the model matrix.
+         console.log("Translation Matrix:");
+         console.log(translationMatrix);
+         console.log("Scaling Matrix:");
+         console.log(scalingMatrix);
+         console.log("Rotation Matrices (x,y,z):");
+         console.log(xRotationMatrix);
+         console.log(yRotationMatrix);
+         console.log(zRotationMatrix);
+         console.log("Model Matrix:");
          console.log(M1_model);
 
-         mat4.lookAt(M_view, [-5, 5, 6], [0, 0, 0], [0, 1, 0]);
-         mat4.perspective(P, Math.PI / 2, canvas.width / canvas.height, .01, 15);
+         // Define each intermediate matrix of the view matrix.
+         let cameraTranslationMatrix = mat4.create();
+         mat4.fromTranslation(cameraTranslationMatrix, [0, 0, dC]);
+         let cameraXRotationMatrix = mat4.create();
+         mat4.fromXRotation(cameraXRotationMatrix, thetaC);
+         let cameraYRotationMatrix = mat4.create();
+         mat4.fromYRotation(cameraYRotationMatrix, phiC);
+         let cameraMatrix = mat4.create();
+         mat4.translate(cameraMatrix, cameraMatrix, [0, 0, dC]);
+         mat4.rotateX(cameraMatrix, cameraMatrix, thetaC);
+         mat4.rotateY(cameraMatrix, cameraMatrix, phiC);
+         console.log("Camera Translation Matrix:");
+         console.log(cameraTranslationMatrix);
+         console.log("Camera Rotation Matrices (x,y):");
+         console.log(cameraXRotationMatrix);
+         console.log(cameraYRotationMatrix);
+         console.log("Camera Matrix:");
+         console.log(cameraMatrix);
+
+         // Calculate the view matrix.
+         mat4.invert(M_view, cameraMatrix);
+         console.log("View Matrix:");
+         console.log(M_view);
+
+         // Calculate the model-view matrix.
+         let modelViewMatrix = mat4.create();
+         mat4.multiply(modelViewMatrix, M_view, M1_model);
+         console.log("Model-View Matrix:");
+         console.log(modelViewMatrix);
+
+         // Define the in-place scaler.
+         let inPlaceScaler = mat4.create();
+         let modelViewInverse = mat4.create();
+         mat4.invert(modelViewInverse, modelViewMatrix);
+         let inPlaceScalingMatrix = mat4.create();
+         mat4.fromScaling(inPlaceScalingMatrix, [2, 1, 1]);
+         mat4.multiply(inPlaceScaler, inPlaceScalingMatrix, modelViewInverse);
+         mat4.multiply(inPlaceScaler, modelViewMatrix, inPlaceScaler);
+         console.log("In-place Scaler:");
+         console.log(inPlaceScaler);
+
+         // Define the scaled model-view matrix.
+         let scaleModelViewMatrix = mat4.create();
+         mat4.multiply(scaleModelViewMatrix, inPlaceScaler, modelViewMatrix);
+         console.log("Scaled Model-View Matrix:");
+         console.log(scaleModelViewMatrix);
+
+
+
+         //mat4.lookAt(M_view, [-5, 5, 6], [0, 0, 0], [0, 1, 0]);
+         //mat4.perspective(P, Math.PI / 2, canvas.width / canvas.height, .01, 15);
+
+
 
          // Log all the points (1-10 = 0,1,2,3,30,31,32,33,28,29):
          // This is before the transformation. Log after the transformation.
@@ -473,7 +521,7 @@
          let newPoints = [];
          for (let i = 0; i < points.length; i++) {
             newPoints[i] = vec4.create();
-            mat4.multiply(newPoints[i], M1_model, object1.vertices[pointIndices[i]]);
+            mat4.multiply(newPoints[i], scaleModelViewMatrix, object1.vertices[pointIndices[i]]);
          }
 
          console.log("Points Before:");
