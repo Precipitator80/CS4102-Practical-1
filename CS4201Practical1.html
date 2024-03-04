@@ -367,10 +367,11 @@
             attribute vec4 aColor;
             uniform mat4 uModelMatrix;
             uniform mat4 uViewMatrix;
+            uniform mat4 uInPlaceScaler;
             uniform mat4 uPerspectiveMatrix;
             varying vec4 vColor;
             void main() {
-               gl_Position = uPerspectiveMatrix * uViewMatrix * uModelMatrix * aPosition;
+               gl_Position = uPerspectiveMatrix * uInPlaceScaler * uViewMatrix * uModelMatrix * aPosition;
                vColor = aColor;
             }
             `;
@@ -410,6 +411,7 @@
 
       let M1_model = mat4.create();
       let M_view = mat4.create();
+      let inPlaceScaler = mat4.create();
       let P = mat4.create();
       if (!practicalTransform) {
          let scale1 = 0.35;
@@ -480,7 +482,6 @@
          console.log(modelViewMatrix);
 
          // Define the in-place scaler.
-         let inPlaceScaler = mat4.create();
          let modelViewInverse = mat4.create();
          mat4.invert(modelViewInverse, modelViewMatrix);
          let inPlaceScalingMatrix = mat4.create();
@@ -491,10 +492,10 @@
          console.log(inPlaceScaler);
 
          // Define the scaled model-view matrix.
-         let scaleModelViewMatrix = mat4.create();
-         mat4.multiply(scaleModelViewMatrix, inPlaceScaler, modelViewMatrix);
+         let scaledModelViewMatrix = mat4.create();
+         mat4.multiply(scaledModelViewMatrix, inPlaceScaler, modelViewMatrix);
          console.log("Scaled Model-View Matrix:");
-         console.log(scaleModelViewMatrix);
+         console.log(scaledModelViewMatrix);
 
 
 
@@ -521,7 +522,7 @@
          let newPoints = [];
          for (let i = 0; i < points.length; i++) {
             newPoints[i] = vec4.create();
-            mat4.multiply(newPoints[i], scaleModelViewMatrix, object1.vertices[pointIndices[i]]);
+            mat4.multiply(newPoints[i], scaledModelViewMatrix, object1.vertices[pointIndices[i]]);
          }
 
          console.log("Points Before:");
@@ -536,6 +537,9 @@
       // Tell WebGL to use M_view as the GLSL uniform uViewMatrix
       let ViewLoc = gl.getUniformLocation(shaderprogram, "uViewMatrix");
       gl.uniformMatrix4fv(ViewLoc, false, new Float32Array(M_view));
+
+      let ScaleLoc = gl.getUniformLocation(shaderprogram, "uInPlaceScaler");
+      gl.uniformMatrix4fv(ScaleLoc, false, new Float32Array(inPlaceScaler));
 
       // Tell WebGL to use P as the GLSL uniform uPerspectiveMatrix
       let PerspLoc = gl.getUniformLocation(shaderprogram, "uPerspectiveMatrix");
