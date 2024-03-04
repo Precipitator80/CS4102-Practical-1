@@ -280,3 +280,38 @@ print("Correct scaling verification:")
 print(f"P1P4Original: {round((Points[:,3] - Points[:,0]).norm(),precision)}. P1P4Model: {round((MPointsEval[:,3] - MPointsEval[:,0]).norm(),precision)}. P1P4ModelView: {round((MVPointsEval[:,3] - MVPointsEval[:,0]).norm(),precision)}. P1P4ScaledModelView: {round((SMVPointsEval[:,3] - SMVPointsEval[:,0]).norm(),precision)}.")
 print(f"P1P2Original: {round((Points[:,1] - Points[:,0]).norm(),precision)}. P1P2Model: {round((MPointsEval[:,1] - MPointsEval[:,0]).norm(),precision)}. P1P2ModelView: {round((MVPointsEval[:,1] - MVPointsEval[:,0]).norm(),precision)}. P1P2ScaledModelView: {round((SMVPointsEval[:,1] - SMVPointsEval[:,0]).norm(),precision)}.")
 print("--------------------------------------------------")
+
+# Question 5. b) Applying a suitable Perspective Matrix
+left = min(SMVPointsEval[0,:])
+right = max(SMVPointsEval[0,:])
+bottom = min(SMVPointsEval[1,:])
+top = max(SMVPointsEval[1,:])
+near = -max(SMVPointsEval[2,:])
+far = -min(SMVPointsEval[2,:])
+bounds = Matrix([[left, right], [bottom, top], [near, far]])
+
+NSH = Matrix([
+    [(2*near)/(right-left),0,(right+left)/(right-left),0],
+    [0,(2*near)/(top-bottom),(top+bottom)/(top-bottom),0],
+    [0,0,-(far+near)/(far-near),(-2*far*near)/(far-near)],
+    [0,0,-1,0]
+    ])
+
+NSHSMVPoints = NSH * SMVPoints
+
+NSHSMVPointsNonNormalised = NSHSMVPoints
+NSHSMVPointsNonNormalisedEval = custom_evaluate(NSHSMVPoints)
+
+for i in range(len(NSHSMVPoints[0,:])):
+    NSHSMVPoints[:,i] /= NSHSMVPoints[:,i][3]
+NSHSMVPointsEval = custom_evaluate(NSHSMVPoints)
+
+print("Q5. b) Bounds (Approximation)")
+print_latex(bounds)
+print("-----\nQ5. b) Perspective Matrix (Approximation)")
+print_latex(NSH)
+print("-----\nQ5. b) Perspective Transformed Points P'''' (Non-Normalised)")
+print_latex(NSHSMVPointsNonNormalisedEval)
+print("-----\nQ5. b) Perspective Transformed Points P''''")
+print_latex(NSHSMVPointsEval)
+print("--------------------------------------------------")
